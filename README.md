@@ -1,4 +1,4 @@
-[![Gem Version](https://badge.fury.io/rb/blondy-dhcpd.png)](http://badge.fury.io/rb/net-dhcp) [![Build Status](https://travis-ci.org/presto53/blondy-dhcpd.png)](https://travis-ci.org/presto53/blondy-dhcpd])
+[![Gem Version](https://badge.fury.io/rb/blondy-dhcpd.png)](http://badge.fury.io/rb/net-dhcp) [![Build Status](https://travis-ci.org/presto53/blondy-dhcpd.png)](https://travis-ci.org/presto53/blondy-dhcpd)
 
 blondy-dhcpd
 ============
