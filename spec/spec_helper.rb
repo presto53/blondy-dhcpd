@@ -10,7 +10,7 @@ require 'em-rspec'
 require 'rspec'
 
 spec_root = File.dirname(File.absolute_path(__FILE__))
-Dir.glob(spec_root + '/../lib/*') {|file| require file}
+Dir.glob(spec_root + '/../lib/blondy/dhcpd/*') {|file| require file}
 
 
 RSpec.configure do |config|

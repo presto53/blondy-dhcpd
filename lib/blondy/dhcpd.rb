@@ -1,5 +1,5 @@
 require 'eventmachine'
-require_relative 'lib/server'
+require_relative 'dhcpd/server'
 
 module Blondy
   module DHCPD
