@@ -40,8 +40,6 @@ module Blondy
 	let(:reply) do
 	  reply = OpenStruct.new
 	  reply.data = DHCP::Offer.new
-	  reply.ipaddr = nil
-	  reply.port = nil
 	  reply
 	end
 
