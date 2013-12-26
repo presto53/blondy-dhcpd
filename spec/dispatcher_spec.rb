@@ -1,6 +1,4 @@
 require 'spec_helper'
-require 'ostruct'
-require 'ipaddr'
 
 module Blondy
   module DHCPD

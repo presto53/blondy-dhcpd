@@ -4,9 +4,11 @@
 # loaded once.
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
+
 require 'net-dhcp'
 require 'eventmachine'
-require 'em-rspec'
+require 'ostruct'
+require 'ipaddr'
 require 'rspec'
 
 spec_root = File.dirname(File.absolute_path(__FILE__))
@@ -24,3 +26,21 @@ RSpec.configure do |config|
   #     --seed 1234
   config.order = 'random'
 end
+
+# Wrap for running examples inside eventmachine reactor
+RSpec::Core::Example.class_eval do
+  alias ignorant_run run
+
+  def run(example_group_instance, reporter)
+    Fiber.new do
+      EM.run do
+	df = EM::DefaultDeferrable.new
+	result = nil
+	df.callback { |x| EM.stop_event_loop; Fiber.yield result }
+	result = ignorant_run example_group_instance, reporter
+	df.succeed
+      end
+    end.resume
+  end
+end
+

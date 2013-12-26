@@ -7,7 +7,6 @@ gem 'log4r'
 gem 'eventmachine'
 
 group :test do
-  gem 'em-rspec'
   gem 'rspec'
 end
 
