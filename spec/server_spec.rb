@@ -1,6 +1,4 @@
 require 'spec_helper'
-require 'ostruct'
-require 'ipaddr'
 
 # nasty hack to avoid creating new thread
 module EM
@@ -31,6 +29,10 @@ module Blondy
 	end
 	it 'run dispatcher' do
 	  dispatcher.should_receive(:dispatch).with(discover.pack, @ip, @port)
+	  server.receive_data(discover.pack)
+	end
+	it 'send reply' do
+	  server.should_receive(:send_datagram)
 	  server.receive_data(discover.pack)
 	end
       end
