@@ -37,23 +37,30 @@ module Blondy
 	let(:reply) do
 	  reply = OpenStruct.new
 	  reply.data = DHCP::Offer.new
+	  reply.data.xid = discover.xid
 	  reply
 	end
 
 	context 'giaddr != 0' do
-	  it 'send offer message to bootp relay' do
-	    pending
-	    data.giaddr = IPAddr.new('192.168.3.3').to_i
-	    server.should_receive(:send_datagram).with(reply.data.pack, '192.168.3.3', 67)
-	    server.receive_data(data.pack)
+	  it 'reply with offer message to bootp relay' do
+	    giaddr = '192.168.3.3'
+	    discover.giaddr = IPAddr.new(giaddr).to_i
+	    reply.ip = giaddr
+	    reply.port = 67
+	    dispatcher.dispatch(discover.pack, from_ip, from_port).data.pack.should == reply.data.pack
+	    dispatcher.dispatch(discover.pack, from_ip, from_port).ip.should == reply.ip
+	    dispatcher.dispatch(discover.pack, from_ip, from_port).port.should == reply.port
 	  end
 	end
 	context 'giaddr = 0 and ciaddr != 0' do
 	  it 'send offer message to client by unicast' do
-	    pending
-	    data.ciaddr = IPAddr.new('192.168.3.3').to_i
-	    server.should_receive(:send_data).with(reply.data.pack, '192.168.3.3', 68)
-	    server.receive_data(data.pack)
+	    ciaddr = '192.168.3.4'
+	    discover.ciaddr = IPAddr.new(ciaddr).to_i
+	    reply.ip = ciaddr
+	    reply.port = 68
+	    dispatcher.dispatch(discover.pack, from_ip, from_port).data.pack.should == reply.data.pack
+	    dispatcher.dispatch(discover.pack, from_ip, from_port).ip.should == reply.ip
+	    dispatcher.dispatch(discover.pack, from_ip, from_port).port.should == reply.port
 	  end
 	end
 	context 'giaddr = 0 and ciaddr = 0 and flags = 1' do
