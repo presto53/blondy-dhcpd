@@ -75,12 +75,13 @@ module Blondy
 	  it_behaves_like Dispatcher
 	end
 	context 'giaddr = 0 and ciaddr = 0 and flags = 1' do
-	  it 'send offer message to client by broadcast to 255.255.255.255' do
-	    pending
-	    data.flags = 1
-	    server.should_receive(:send_data).with(reply.data.pack, '', 68)
-	    server.receive_data(data.pack)
+	  #send offer message to client by broadcast to 255.255.255.255
+	  before(:each) do
+	    discover.flags = 1
+	    reply.ip = '255.255.255.255'
+	    reply.port = 68
 	  end
+	  it_behaves_like Dispatcher
 	end
 	context 'giaddr = 0 and ciaddr = 0 and flags = 0' do
 	  it 'send offer message to client by unicast it to client hwaddr and yiaddr' do

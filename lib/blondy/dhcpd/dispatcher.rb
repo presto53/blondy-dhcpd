@@ -14,7 +14,7 @@ module Blondy
 	  reply.port = 68
 	  if @data.giaddr == 0 and @data.ciaddr != 0
 	    reply.ip = IPAddr.new(@data.ciaddr, family = Socket::AF_INET).to_s
-	  else
+	  elsif @data.giaddr != 0
 	    reply.ip = IPAddr.new(@data.giaddr, family = Socket::AF_INET).to_s
 	    reply.port = 67
 	  end
