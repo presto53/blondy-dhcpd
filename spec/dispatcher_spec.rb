@@ -6,10 +6,13 @@ module Blondy
       subject(:dispatcher) {Dispatcher}
       let(:from_ip) {'0.0.0.0'}
       let(:from_port) {67}
-      let(:discover) do
-	d = DHCP::Discover.new
-	d.xid = 123456789
-	d
+      %i{discover request release inform}.each do |message|
+	let(message) do
+	  msg_class = Object.const_get "DHCP::#{message.to_s.capitalize}"
+	  d = msg_class.new
+	  d.xid = 123456789
+	  d
+	end
       end
 
       shared_examples_for Dispatcher do
@@ -24,9 +27,24 @@ module Blondy
 	end
       end
 
-      context 'receive dhcp message' do
-	it 'reply xid is the same as received xid' do
-	  dispatcher.dispatch(discover.pack, from_ip, from_port).data.xid.should == discover.xid
+      %w{discover request release inform}.each do |message|
+	context "receive dhcp #{message} message" do
+	  it 'reply xid is the same as received xid' do
+	    dispatcher.dispatch(eval(message).pack, from_ip, from_port).data.xid.should == eval(message).xid
+	  end
+	  it "dispatch it to specific #{message}_handler private method" do
+	    dispatcher.should_receive("#{message}_handler".to_sym)
+	    dispatcher.dispatch(eval(message).pack, from_ip, from_port)
+	  end
+	end
+      end
+
+      context 'wrong message' do
+	it 'false when message is unknown' do
+	  dispatcher.dispatch("abracadabra", from_ip, from_port).should == false
+	end
+	it 'false when action for message unspecified' do
+	  dispatcher.dispatch(DHCP::ACK.new.pack, from_ip, from_port).should == false
 	end
       end
 
