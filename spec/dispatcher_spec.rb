@@ -53,7 +53,6 @@ module Blondy
 	  reply
 	end
 
-
 	context 'giaddr != 0' do
 	  #reply with offer message to bootp relay
 	  before(:each) do
@@ -74,7 +73,7 @@ module Blondy
 	  end
 	  it_behaves_like Dispatcher
 	end
-	context 'giaddr = 0 and ciaddr = 0 and flags = 1' do
+	context 'giaddr = 0 and ciaddr = 0' do
 	  #send offer message to client by broadcast to 255.255.255.255
 	  before(:each) do
 	    discover.flags = 1
@@ -82,16 +81,6 @@ module Blondy
 	    reply.port = 68
 	  end
 	  it_behaves_like Dispatcher
-	end
-	context 'giaddr = 0 and ciaddr = 0 and flags = 0' do
-	  it 'send offer message to client by unicast it to client hwaddr and yiaddr' do
-	    pending
-	    data.yiaddr = IPAddr.new('192.168.3.200').to_i
-	    data.chaddr = [80, 229, 73, 35, 15, 112, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-	    reply.data.chaddr.should eq(data.chaddr)
-	    server.should_receive(:send_data).with(reply.data.pack, '192.168.3.200', 68)
-	    server.receive_data(data.pack)
-	  end
 	end
       end
     end
