@@ -12,13 +12,25 @@ module Blondy
 	d
       end
 
+      shared_examples_for Dispatcher do
+	it 'data is correct' do
+	  dispatcher.dispatch(discover.pack, from_ip, from_port).data.pack.should == reply.data.pack
+	end
+	it 'ip is correct' do
+	  dispatcher.dispatch(discover.pack, from_ip, from_port).ip.should == reply.ip
+	end
+	it 'port is correct' do
+	  dispatcher.dispatch(discover.pack, from_ip, from_port).port.should == reply.port
+	end
+      end
+
       context 'receive dhcp message' do
 	it 'reply xid is the same as received xid' do
 	  dispatcher.dispatch(discover.pack, from_ip, from_port).data.xid.should == discover.xid
 	end
       end
 
-      context 'receive discovery message' do
+      describe 'receive discovery message' do
 	# RFC 2131 (http://www.ietf.org/rfc/rfc2131.txt)
 	#
 	# http://stackoverflow.com/a/10757849
@@ -41,27 +53,26 @@ module Blondy
 	  reply
 	end
 
+
 	context 'giaddr != 0' do
-	  it 'reply with offer message to bootp relay' do
+	  #reply with offer message to bootp relay
+	  before(:each) do
 	    giaddr = '192.168.3.3'
 	    discover.giaddr = IPAddr.new(giaddr).to_i
 	    reply.ip = giaddr
 	    reply.port = 67
-	    dispatcher.dispatch(discover.pack, from_ip, from_port).data.pack.should == reply.data.pack
-	    dispatcher.dispatch(discover.pack, from_ip, from_port).ip.should == reply.ip
-	    dispatcher.dispatch(discover.pack, from_ip, from_port).port.should == reply.port
 	  end
+	  it_behaves_like Dispatcher
 	end
 	context 'giaddr = 0 and ciaddr != 0' do
-	  it 'send offer message to client by unicast' do
+	  #send offer message to client
+	  before(:each) do
 	    ciaddr = '192.168.3.4'
 	    discover.ciaddr = IPAddr.new(ciaddr).to_i
 	    reply.ip = ciaddr
 	    reply.port = 68
-	    dispatcher.dispatch(discover.pack, from_ip, from_port).data.pack.should == reply.data.pack
-	    dispatcher.dispatch(discover.pack, from_ip, from_port).ip.should == reply.ip
-	    dispatcher.dispatch(discover.pack, from_ip, from_port).port.should == reply.port
 	  end
+	  it_behaves_like Dispatcher
 	end
 	context 'giaddr = 0 and ciaddr = 0 and flags = 1' do
 	  it 'send offer message to client by broadcast to 255.255.255.255' do
