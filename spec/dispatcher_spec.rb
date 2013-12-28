@@ -29,22 +29,24 @@ module Blondy
 
       %w{discover request release inform}.each do |message|
 	context "receive dhcp #{message} message" do
-	  it 'reply xid is the same as received xid' do
-	    dispatcher.dispatch(eval(message).pack, from_ip, from_port).data.xid.should == eval(message).xid
-	  end
 	  it "dispatch it to specific #{message}_handler private method" do
 	    dispatcher.should_receive("#{message}_handler".to_sym)
 	    dispatcher.dispatch(eval(message).pack, from_ip, from_port)
+	  end
+	  if %w{discover request inform}.include? message
+	    it 'reply xid is the same as received xid' do
+	      dispatcher.dispatch(eval(message).pack, from_ip, from_port).data.xid.should == eval(message).xid
+	    end
 	  end
 	end
       end
 
       context 'wrong message' do
 	it 'false when message is unknown' do
-	  dispatcher.dispatch("abracadabra", from_ip, from_port).should == false
+	  lambda { dispatcher.dispatch("abracadabra", from_ip, from_port) }.should raise_error(NoMessageHandler)
 	end
 	it 'false when action for message unspecified' do
-	  dispatcher.dispatch(DHCP::ACK.new.pack, from_ip, from_port).should == false
+	  lambda { dispatcher.dispatch("abracadabra", from_ip, from_port) }.should raise_error(NoMessageHandler)
 	end
       end
 

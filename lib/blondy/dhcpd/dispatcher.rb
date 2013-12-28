@@ -5,23 +5,55 @@ require 'ipaddr'
 module Blondy
   module DHCPD
     class Dispatcher
-      def self.dispatch(data, ip, port)
-	@data = DHCP::Message.from_udp_payload(data)
-	reply = OpenStruct.new
-	if @data.kind_of?(DHCP::Discover)
-	  reply.data = DHCP::Offer.new
-	  reply.ip = '255.255.255.255'
-	  reply.port = 68
-	  if @data.giaddr == 0 and @data.ciaddr != 0
-	    reply.ip = IPAddr.new(@data.ciaddr, family = Socket::AF_INET).to_s
-	  elsif @data.giaddr != 0
-	    reply.ip = IPAddr.new(@data.giaddr, family = Socket::AF_INET).to_s
-	    reply.port = 67
+      class << self
+	def dispatch(data, ip, port)
+	  @data = DHCP::Message.from_udp_payload(data)
+	  @reply = OpenStruct.new
+	  msg_class = @data.class.to_s.gsub(/^.*::/, '').downcase
+	  send("#{msg_class}_handler".to_sym)
+	  if @reply.data
+	    @reply.data.xid = @data.xid if @data.xid && @reply.data
+	    @reply
+	  else
+	    false
 	  end
 	end
-	reply.data.xid = @data.xid
-	reply
+
+	private
+
+	def discover_handler
+	  @reply.data = DHCP::Offer.new
+	  @reply.ip = '255.255.255.255'
+	  @reply.port = 68
+	  if @data.giaddr == 0 and @data.ciaddr != 0
+	    @reply.ip = IPAddr.new(@data.ciaddr, family = Socket::AF_INET).to_s
+	  elsif @data.giaddr != 0
+	    @reply.ip = IPAddr.new(@data.giaddr, family = Socket::AF_INET).to_s
+	    @reply.port = 67
+	  else
+	    false
+	  end
+	end
+
+	def request_handler
+	  @reply.data = DHCP::ACK.new
+	end
+
+	def release_handler
+	  @reply.data = nil
+	end
+
+	def inform_handler
+	  @reply.data = DHCP::ACK.new
+	end
+
+	def method_missing(*args)
+	  raise NoMessageHandler, 'No appropriate handler for message.'
+	end
       end
     end
   end
+end
+
+class NoMessageHandler < StandardError
 end
