@@ -6,9 +6,9 @@ module Blondy
       subject(:dispatcher) {Dispatcher}
       let(:from_ip) {'0.0.0.0'}
       let(:from_port) {67}
-      %i{discover request release inform}.each do |message|
+      [ :discover, :request, :release, :inform ].each do |message|
 	let(message) do
-	  msg_class = Object.const_get "DHCP::#{message.to_s.capitalize}"
+	  msg_class = DHCP.const_get message.to_s.capitalize.to_sym
 	  d = msg_class.new
 	  d.xid = 123456789
 	  d
