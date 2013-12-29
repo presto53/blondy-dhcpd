@@ -102,6 +102,20 @@ module Blondy
 	  end
 	  it_behaves_like Dispatcher
 	end
+
+	it 'check for reply in cache' do
+	  pending
+	end
+	context 'found in cache' do
+	  it 'not reply for message' do
+	    pending
+	  end
+	end
+	context 'not found in cache' do
+	  it 'send query to remote pool' do
+	    pending
+	  end
+	end
       end
     end
   end
