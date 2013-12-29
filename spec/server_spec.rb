@@ -17,6 +17,7 @@ module Blondy
 	d.xid = 123456789
 	d
       end
+      let(:logger) {Logger}
 
       before(:each) do
 	allow(EM).to receive(:open_udp_socket).and_return 0
@@ -35,8 +36,17 @@ module Blondy
 	  server.should_receive(:send_datagram)
 	  server.receive_data(discover.pack)
 	end
+	context 'wrong data' do
+	  it 'not send reply' do
+	    server.should_not_receive(:send_datagram)
+	    server.receive_data('abracadabra')
+	  end
+	  it 'should log error' do
+	    logger.should_receive(:info).with('Incorrect message. Ignore.')
+	    server.receive_data('abracadabra')
+	  end
+	end
       end
-
     end
   end
 end
