@@ -7,7 +7,7 @@ module Blondy
     class Dispatcher
       class << self
 	def dispatch(data, ip, port)
-	  @data = DHCP::Message.from_udp_payload(data)
+	  @data = DHCP::Message.from_udp_payload(data) rescue raise(IncorrectMessage, 'Incorrect message received.')
 	  @reply = OpenStruct.new
 	  msg_class = @data.class.to_s.gsub(/^.*::/, '').downcase
 	  send("#{msg_class}_handler".to_sym)
@@ -56,4 +56,6 @@ module Blondy
 end
 
 class NoMessageHandler < StandardError
+end
+class IncorrectMessage < StandardError
 end

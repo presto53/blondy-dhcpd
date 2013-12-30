@@ -7,19 +7,32 @@ module Blondy
   module DHCPD
     # Main class for handling connections
     class Server < EM::Connection
+      def initialize
+	@buffer = String.new
+	super
+      end
       # Fires up Dispatcher and send reply back by callback
       def receive_data(data)
-	ip, port = Socket.unpack_sockaddr_in(get_peername)
-	action = proc do
-	  begin
-	    Dispatcher.dispatch(data, ip, port)
-	  rescue NoMessageHandler
-	    Logger.info 'Incorrect message. Ignore.'
-	    false
+	@buffer = String.new if (@buffer.size + data.size) > 1000
+	@buffer += data
+
+	if @buffer.unpack('C4Nn2N4C16C192NC*').include?($DHCP_MAGIC)
+	  ip, port = Socket.unpack_sockaddr_in(get_peername)
+	  action = proc do
+	    begin
+	      Dispatcher.dispatch(@buffer, ip, port)
+	    rescue NoMessageHandler
+	      Logger.warn 'No handler for message found. Ignore.'
+	      false
+	    rescue IncorrectMessage
+	      Logger.warn 'Incorrect message received. Ignore.'
+	      false
+	    end
 	  end
+	  callback = proc { |reply| send_datagram(reply.data.pack, reply.ip, reply.port) if reply && reply.data }
+	  EM.defer(action,callback)
+	  @buffer.clear
 	end
-	callback = proc { |reply| send_datagram(reply.data.pack, reply.ip, reply.port) if reply && reply.data }
-	EM.defer(action,callback)
       end
     end
   end
