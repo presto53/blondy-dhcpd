@@ -115,6 +115,21 @@ module Blondy
 	  it 'send query to remote pool' do
 	    pending
 	  end
+	  context 'pool query successful' do
+	    it 'add message to cache' do
+	      pending
+	    end
+	    it 'add pool reply to cache' do
+	      pending
+	    end
+	    it 'set reply fields according to pool query result' do
+	    end
+	  end
+	  context 'pool query failed' do
+	    it 'raise error' do
+	      pending
+	    end
+	  end
 	end
       end
     end
