@@ -13,7 +13,7 @@ module Blondy
       end
       # Fires up Dispatcher and send reply back by callback
       def receive_data(data)
-	@buffer = String.new if (@buffer.size + data.size) > 1000
+	@buffer.clear if (@buffer.size + data.size) > 1000
 	@buffer += data
 
 	if @buffer.unpack('C4Nn2N4C16C192NC*').include?($DHCP_MAGIC)
