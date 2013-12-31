@@ -5,6 +5,12 @@ module Blondy
     describe 'Dispatcher' do
       subject(:dispatcher) {Dispatcher}
       let(:pool) {Pool}
+      let(:query_result) do
+	pr = OpenStruct.new
+	pr.data = {}
+	pr.code = 200
+	pr
+      end
       let(:from_ip) {'0.0.0.0'}
       let(:from_port) {67}
       [ :discover, :request, :release, :inform ].each do |message|
@@ -14,6 +20,10 @@ module Blondy
 	  d.xid = 123456789
 	  d
 	end
+      end
+
+      before(:each) do
+	allow(pool).to receive(:query).and_return(query_result)
       end
 
       shared_examples_for Dispatcher do
