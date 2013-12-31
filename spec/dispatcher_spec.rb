@@ -4,6 +4,7 @@ module Blondy
   module DHCPD
     describe 'Dispatcher' do
       subject(:dispatcher) {Dispatcher}
+      let(:pool) {Pool}
       let(:from_ip) {'0.0.0.0'}
       let(:from_port) {67}
       [ :discover, :request, :release, :inform ].each do |message|
@@ -43,10 +44,10 @@ module Blondy
 
       context 'wrong message' do
 	it 'false when message is unknown' do
-	  lambda { dispatcher.dispatch("abracadabra", from_ip, from_port) }.should raise_error(NoMessageHandler)
+	  lambda { dispatcher.dispatch("abracadabra", from_ip, from_port) }.should raise_error(IncorrectMessage)
 	end
 	it 'false when action for message unspecified' do
-	  lambda { dispatcher.dispatch("abracadabra", from_ip, from_port) }.should raise_error(NoMessageHandler)
+	  lambda { dispatcher.dispatch("abracadabra", from_ip, from_port) }.should raise_error(IncorrectMessage)
 	end
       end
 
@@ -113,7 +114,10 @@ module Blondy
 	end
 	context 'not found in cache' do
 	  it 'send query to remote pool' do
-	    pending
+	    discover.chaddr = [238, 238, 238, 238, 238, 238, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+	    discover.hlen = 6
+	    pool.should_receive(:query).with({hwaddr: 'ee:ee:ee:ee:ee:ee', type: :discover})
+	    dispatcher.dispatch(discover.pack, from_ip, from_port)
 	  end
 	  context 'pool query successful' do
 	    it 'add message to cache' do

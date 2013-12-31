@@ -8,6 +8,9 @@ module Blondy
       class << self
 	def dispatch(data, ip, port)
 	  @data = DHCP::Message.from_udp_payload(data) rescue raise(IncorrectMessage, 'Incorrect message received.')
+	  raise(IncorrectMessage, 'Incorrect message received.') unless @data
+	  DHCP::Message.class_eval {attr_accessor :hwaddr}
+	  @data.hwaddr = @data.chaddr.take(@data.hlen).map {|x| x.to_s(16).size<2 ? '0'+x.to_s(16) : x.to_s(16)}.join(':')
 	  @reply = OpenStruct.new
 	  msg_class = @data.class.to_s.gsub(/^.*::/, '').downcase
 	  send("#{msg_class}_handler".to_sym)
@@ -22,6 +25,7 @@ module Blondy
 	private
 
 	def discover_handler
+	  @pool = Pool.query({hwaddr: @data.hwaddr, type: :discover})
 	  @reply.data = DHCP::Offer.new
 	  @reply.ip = '255.255.255.255'
 	  @reply.port = 68
@@ -59,3 +63,4 @@ class NoMessageHandler < StandardError
 end
 class IncorrectMessage < StandardError
 end
+
