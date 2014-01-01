@@ -84,6 +84,11 @@ module Blondy
 	  reply
 	end
 
+	before(:each) do
+	  discover.chaddr = [238, 238, 238, 238, 238, 238, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+	  discover.hlen = 6
+	end
+
 	context 'giaddr != 0' do
 	  #reply with offer message to bootp relay
 	  before(:each) do
@@ -114,33 +119,15 @@ module Blondy
 	  it_behaves_like Dispatcher
 	end
 
-	it 'check for reply in cache' do
-	  pending
-	end
-	context 'found in cache' do
-	  it 'not reply for message' do
-	    pending
-	  end
-	end
-	context 'not found in cache' do
-	  it 'send query to remote pool' do
-	    discover.chaddr = [238, 238, 238, 238, 238, 238, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-	    discover.hlen = 6
-	    pool.should_receive(:query).with({hwaddr: 'ee:ee:ee:ee:ee:ee', type: :discover})
-	    dispatcher.dispatch(discover.pack, from_ip, from_port)
-	  end
-	  context 'pool query successful' do
-	    it 'add message to cache' do
-	      pending
+	context 'ask pool for configuration' do
+	  context 'query already found in cache' do
+	    it 'not reply for message' do
+	      pool.should_receive(:query).with({hwaddr: 'ee:ee:ee:ee:ee:ee', type: :discover}).and_return(false)
+	      dispatcher.dispatch(discover.pack, from_ip, from_port).should be_false
 	    end
-	    it 'add pool reply to cache' do
-	      pending
-	    end
+	  end
+	  context 'query not found in cache' do
 	    it 'set reply fields according to pool query result' do
-	    end
-	  end
-	  context 'pool query failed' do
-	    it 'raise error' do
 	      pending
 	    end
 	  end

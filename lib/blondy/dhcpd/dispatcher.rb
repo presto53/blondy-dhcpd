@@ -26,16 +26,20 @@ module Blondy
 
 	def discover_handler
 	  @pool = Pool.query({hwaddr: @data.hwaddr, type: :discover})
-	  @reply.data = DHCP::Offer.new
-	  @reply.ip = '255.255.255.255'
-	  @reply.port = 68
-	  if @data.giaddr == 0 and @data.ciaddr != 0
-	    @reply.ip = IPAddr.new(@data.ciaddr, family = Socket::AF_INET).to_s
-	  elsif @data.giaddr != 0
-	    @reply.ip = IPAddr.new(@data.giaddr, family = Socket::AF_INET).to_s
-	    @reply.port = 67
+	  if @pool
+	    @reply.data = DHCP::Offer.new
+	    @reply.ip = '255.255.255.255'
+	    @reply.port = 68
+	    if @data.giaddr == 0 and @data.ciaddr != 0
+	      @reply.ip = IPAddr.new(@data.ciaddr, family = Socket::AF_INET).to_s
+	    elsif @data.giaddr != 0
+	      @reply.ip = IPAddr.new(@data.giaddr, family = Socket::AF_INET).to_s
+	      @reply.port = 67
+	    else
+	      false
+	    end
 	  else
-	    false
+	    @reply.data = nil
 	  end
 	end
 

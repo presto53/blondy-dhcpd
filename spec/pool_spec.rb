@@ -4,6 +4,9 @@ module Blondy
   module DHCPD
     describe 'Pool' do
       describe 'receive query' do
+	it 'check for reply in cache' do
+	  pending
+	end
 	it 'initiate query to remote server' do
 	  pending
 	end
