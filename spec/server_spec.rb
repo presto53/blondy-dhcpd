@@ -70,6 +70,9 @@ module Blondy
 
 	context 'receive dhcp message' do
 	  it 'send reply' do
+	    reply = OpenStruct.new
+	    reply.data = DHCP::Offer.new
+	    allow(dispatcher).to receive(:dispatch).and_return(reply)
 	    server.should_receive(:send_datagram)
 	    server.receive_data(discover.pack)
 	  end
