@@ -38,6 +38,9 @@ module Blondy
 	    else
 	      false
 	    end
+	    @reply.data.yiaddr = @pool.data.yiaddr
+	    @reply.data.fname = @pool.data.fname
+	    @reply.data.options = @pool.data.options
 	  else
 	    @reply.data = nil
 	  end
