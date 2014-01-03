@@ -9,7 +9,7 @@ module Blondy
 	pr = OpenStruct.new
 	pr.data = OpenStruct.new
 	pr.data.fname = String.new
-	pr.data.yiaddr = nil
+	pr.data.yiaddr = '0.0.0.0'
 	pr.data.options = Array.new
 	pr.code = 200
 	pr
@@ -86,16 +86,16 @@ module Blondy
 	  reply.data = DHCP::Offer.new
 	  reply.data.xid = discover.xid
 	  reply.data.options = pool_query_result.data.options
-	  reply.data.yiaddr = pool_query_result.data.yiaddr
-	  reply.data.fname = pool_query_result.data.fname
+	  reply.data.yiaddr = IPAddr.new(pool_query_result.data.yiaddr).to_i
+	  reply.data.fname = pool_query_result.data.fname.unpack('C128').map {|x| x ? x : 0}
 	  reply
 	end
 
 	before(:each) do
 	  discover.chaddr = [238, 238, 238, 238, 238, 238, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 	  discover.hlen = 6
-	  pool_query_result.data.fname = 'test.txt'.unpack('C128').map {|x| x ? x : 0}
-	  pool_query_result.data.yiaddr = IPAddr.new('192.168.5.150').to_i
+	  pool_query_result.data.fname = 'test.txt'
+	  pool_query_result.data.yiaddr = '192.168.5.150'
 	  pool_query_result.data.options = [
 	    DHCP::MessageTypeOption.new({payload: [$DHCP_MSG_OFFER]}),
 	    DHCP::ServerIdentifierOption.new({payload: [192, 168, 1, 1]}),
@@ -104,7 +104,7 @@ module Blondy
 	    DHCP::IPAddressLeaseTimeOption.new({payload: [7200].pack('N').unpack('C*')}),
 	    DHCP::SubnetMaskOption.new({payload: [255, 255, 255, 255]}),
 	    DHCP::RouterOption.new({payload: [192, 168, 1, 1]})
-	  ]   
+	  ]
 	end
 
 	context 'giaddr != 0' do
@@ -146,8 +146,8 @@ module Blondy
 	  end
 	  context 'query not found in cache' do
 	    it 'set reply fields according to pool query result' do
-	      dispatcher.dispatch(discover.pack, from_ip, from_port).data.fname.should == pool_query_result.data.fname
-	      dispatcher.dispatch(discover.pack, from_ip, from_port).data.yiaddr.should == pool_query_result.data.yiaddr
+	      dispatcher.dispatch(discover.pack, from_ip, from_port).data.fname.should == pool_query_result.data.fname.unpack('C128').map {|x| x ? x : 0}
+	      dispatcher.dispatch(discover.pack, from_ip, from_port).data.yiaddr.should == IPAddr.new(pool_query_result.data.yiaddr).to_i
 	      dispatcher.dispatch(discover.pack, from_ip, from_port).data.options.should == pool_query_result.data.options
 	    end
 	    it 'set siaddr to server ip address' do

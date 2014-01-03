@@ -38,8 +38,8 @@ module Blondy
 	    else
 	      false
 	    end
-	    @reply.data.yiaddr = @pool.data.yiaddr
-	    @reply.data.fname = @pool.data.fname
+	    @reply.data.yiaddr = IPAddr.new(@pool.data.yiaddr).to_i
+	    @reply.data.fname = @pool.data.fname.unpack('C128').map {|x| x ? x : 0}
 	    @reply.data.options = @pool.data.options
 	  else
 	    @reply.data = nil
