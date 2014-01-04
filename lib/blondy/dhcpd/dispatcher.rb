@@ -41,6 +41,7 @@ module Blondy
 	    @reply.data.yiaddr = IPAddr.new(@pool.data.yiaddr).to_i
 	    @reply.data.fname = @pool.data.fname.unpack('C128').map {|x| x ? x : 0}
 	    @reply.data.options = @pool.data.options
+	    @reply.data.siaddr = IPAddr.new(Blondy::DHCPD::CONFIG[:server_ip]).to_i
 	  else
 	    @reply.data = nil
 	  end
