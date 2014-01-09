@@ -104,7 +104,7 @@ module Blondy
 	  reply.data.options = pool_query_result.data.options
 	  reply.data.yiaddr = IPAddr.new(pool_query_result.data.yiaddr).to_i
 	  reply.data.fname = pool_query_result.data.fname.unpack('C128').map {|x| x ? x : 0}
-	  reply.data.siaddr = IPAddr.new(Blondy::DHCPD::CONFIG[:server_ip]).to_i
+	  reply.data.siaddr = IPAddr.new(Blondy::DHCPD::CONFIG['server_ip']).to_i
 	end
 
 	it 'reply with offer' do
@@ -181,7 +181,7 @@ module Blondy
 	  reply.data.options = pool_query_result.data.options
 	  reply.data.yiaddr = IPAddr.new(pool_query_result.data.yiaddr).to_i
 	  reply.data.fname = pool_query_result.data.fname.unpack('C128').map {|x| x ? x : 0}
-	  reply.data.siaddr = IPAddr.new(Blondy::DHCPD::CONFIG[:server_ip]).to_i
+	  reply.data.siaddr = IPAddr.new(Blondy::DHCPD::CONFIG['server_ip']).to_i
 	  message = request
 	end
 	it 'reply with ack' do
