@@ -28,27 +28,20 @@ module Blondy
 	  @pool = Pool.query({hwaddr: @data.hwaddr, type: :discover})
 	  if @pool
 	    @reply.data = DHCP::Offer.new
-	    @reply.ip = '255.255.255.255'
-	    @reply.port = 68
-	    if @data.giaddr == 0 and @data.ciaddr != 0
-	      @reply.ip = IPAddr.new(@data.ciaddr, family = Socket::AF_INET).to_s
-	    elsif @data.giaddr != 0
-	      @reply.ip = IPAddr.new(@data.giaddr, family = Socket::AF_INET).to_s
-	      @reply.port = 67
-	    else
-	      false
-	    end
-	    @reply.data.yiaddr = IPAddr.new(@pool.data.yiaddr).to_i
-	    @reply.data.fname = @pool.data.fname.unpack('C128').map {|x| x ? x : 0}
-	    @reply.data.options = @pool.data.options
-	    @reply.data.siaddr = IPAddr.new(Blondy::DHCPD::CONFIG[:server_ip]).to_i
+	    create_reply
 	  else
 	    @reply.data = nil
 	  end
 	end
 
 	def request_handler
-	  @reply.data = DHCP::ACK.new
+	  @pool = Pool.query({hwaddr: @data.hwaddr, type: :request})
+	  if @pool
+	    @reply.data = DHCP::ACK.new
+	    create_reply
+	  else
+	    @reply.data = nil
+	  end
 	end
 
 	def release_handler
@@ -57,6 +50,23 @@ module Blondy
 
 	def inform_handler
 	  @reply.data = DHCP::ACK.new
+	end
+
+	def create_reply
+	  @reply.ip = '255.255.255.255'
+	  @reply.port = 68
+	  if @data.giaddr == 0 and @data.ciaddr != 0
+	    @reply.ip = IPAddr.new(@data.ciaddr, family = Socket::AF_INET).to_s
+	  elsif @data.giaddr != 0
+	    @reply.ip = IPAddr.new(@data.giaddr, family = Socket::AF_INET).to_s
+	    @reply.port = 67
+	  else
+	    false
+	  end
+	  @reply.data.yiaddr = IPAddr.new(@pool.data.yiaddr).to_i
+	  @reply.data.fname = @pool.data.fname.unpack('C128').map {|x| x ? x : 0}
+	  @reply.data.options = @pool.data.options
+	  @reply.data.siaddr = IPAddr.new(Blondy::DHCPD::CONFIG[:server_ip]).to_i
 	end
 
 	def method_missing(*args)

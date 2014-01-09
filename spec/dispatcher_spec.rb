@@ -24,6 +24,7 @@ module Blondy
 	  d
 	end
       end
+      let(:reply) {OpenStruct.new}
       Blondy::DHCPD::CONFIG = Hash.new
       Blondy::DHCPD::CONFIG[:server_ip] = '192.168.5.1'
 
@@ -32,15 +33,15 @@ module Blondy
 	allow(pool).to receive(:query).with({hwaddr: 'ee:ee:ee:ee:ee:ee', type: :discover}).and_return(pool_query_result)
       end
 
-      shared_examples_for Dispatcher do
+      shared_examples 'Dispatcher' do |message|
 	it 'data is correct' do
-	  dispatcher.dispatch(discover.pack, from_ip, from_port).data.pack.should == reply.data.pack
+	  dispatcher.dispatch(eval(message.to_s).pack, from_ip, from_port).data.pack.should == reply.data.pack
 	end
 	it 'ip is correct' do
-	  dispatcher.dispatch(discover.pack, from_ip, from_port).ip.should == reply.ip
+	  dispatcher.dispatch(eval(message.to_s).pack, from_ip, from_port).ip.should == reply.ip
 	end
 	it 'port is correct' do
-	  dispatcher.dispatch(discover.pack, from_ip, from_port).port.should == reply.port
+	  dispatcher.dispatch(eval(message.to_s).pack, from_ip, from_port).port.should == reply.port
 	end
       end
 
@@ -83,16 +84,6 @@ module Blondy
 	# then the server unicasts DHCPOFFER and DHCPACK messages to the client's hardware address
 	# and 'yiaddr' address. In all cases, when 'giaddr' is zero,
 	# the server broadcasts any DHCPNAK messages to 0xffffffff.
-	let(:reply) do
-	  reply = OpenStruct.new
-	  reply.data = DHCP::Offer.new
-	  reply.data.xid = discover.xid
-	  reply.data.options = pool_query_result.data.options
-	  reply.data.yiaddr = IPAddr.new(pool_query_result.data.yiaddr).to_i
-	  reply.data.fname = pool_query_result.data.fname.unpack('C128').map {|x| x ? x : 0}
-	  reply.data.siaddr = IPAddr.new(Blondy::DHCPD::CONFIG[:server_ip]).to_i
-	  reply
-	end
 
 	before(:each) do
 	  discover.chaddr = [238, 238, 238, 238, 238, 238, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -108,6 +99,16 @@ module Blondy
 	    DHCP::SubnetMaskOption.new({payload: [255, 255, 255, 255]}),
 	    DHCP::RouterOption.new({payload: [192, 168, 1, 1]})
 	  ]
+	  reply.data = DHCP::Offer.new
+	  reply.data.xid = discover.xid
+	  reply.data.options = pool_query_result.data.options
+	  reply.data.yiaddr = IPAddr.new(pool_query_result.data.yiaddr).to_i
+	  reply.data.fname = pool_query_result.data.fname.unpack('C128').map {|x| x ? x : 0}
+	  reply.data.siaddr = IPAddr.new(Blondy::DHCPD::CONFIG[:server_ip]).to_i
+	end
+
+	it 'reply with offer' do
+	  dispatcher.dispatch(discover.pack, from_ip, from_port).data.class == DHCP::Offer
 	end
 
 	context 'giaddr != 0' do
@@ -118,7 +119,7 @@ module Blondy
 	    reply.ip = giaddr
 	    reply.port = 67
 	  end
-	  it_behaves_like Dispatcher
+	  it_should_behave_like 'Dispatcher', :discover
 	end
 	context 'giaddr = 0 and ciaddr != 0' do
 	  #send offer message to client
@@ -128,7 +129,7 @@ module Blondy
 	    reply.ip = ciaddr
 	    reply.port = 68
 	  end
-	  it_behaves_like Dispatcher
+	  it_should_behave_like 'Dispatcher', :discover
 	end
 	context 'giaddr = 0 and ciaddr = 0' do
 	  #send offer message to client by broadcast to 255.255.255.255
@@ -137,7 +138,7 @@ module Blondy
 	    reply.ip = '255.255.255.255'
 	    reply.port = 68
 	  end
-	  it_behaves_like Dispatcher
+	  it_should_behave_like 'Dispatcher', :discover
 	end
 
 	context 'ask pool for configuration' do
@@ -155,6 +156,82 @@ module Blondy
 	    end
 	    it 'set siaddr to server ip address' do
 	      dispatcher.dispatch(discover.pack, from_ip, from_port).data.siaddr.should == IPAddr.new(Blondy::DHCPD::CONFIG[:server_ip]).to_i
+	    end
+	  end
+	end
+      end
+
+      describe 'receive request message' do
+	before(:each) do
+	  request.chaddr = [238, 238, 238, 238, 238, 238, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+	  request.hlen = 6
+	  pool_query_result.data.fname = 'test.txt'
+	  pool_query_result.data.yiaddr = '192.168.5.150'
+	  pool_query_result.data.options = [
+	    DHCP::MessageTypeOption.new({payload: [$DHCP_MSG_ACK]}),
+	    DHCP::ServerIdentifierOption.new({payload: [192, 168, 1, 1]}),
+	    DHCP::DomainNameOption.new({payload: 'example.com'.unpack('C*')}),
+	    DHCP::DomainNameServerOption.new({payload: [8,8,8,8]}),
+	    DHCP::IPAddressLeaseTimeOption.new({payload: [7200].pack('N').unpack('C*')}),
+	    DHCP::SubnetMaskOption.new({payload: [255, 255, 255, 255]}),
+	    DHCP::RouterOption.new({payload: [192, 168, 1, 1]})
+	  ]
+	  reply.data = DHCP::ACK.new
+	  reply.data.xid = request.xid
+	  reply.data.options = pool_query_result.data.options
+	  reply.data.yiaddr = IPAddr.new(pool_query_result.data.yiaddr).to_i
+	  reply.data.fname = pool_query_result.data.fname.unpack('C128').map {|x| x ? x : 0}
+	  reply.data.siaddr = IPAddr.new(Blondy::DHCPD::CONFIG[:server_ip]).to_i
+	  message = request
+	end
+	it 'reply with ack' do
+	  dispatcher.dispatch(discover.pack, from_ip, from_port).data.class == DHCP::ACK
+	end
+	context 'giaddr != 0' do
+	  #reply with ack message to bootp relay
+	  before(:each) do
+	    giaddr = '192.168.3.3'
+	    request.giaddr = IPAddr.new(giaddr).to_i
+	    reply.ip = giaddr
+	    reply.port = 67
+	  end
+	  it_should_behave_like 'Dispatcher', :request
+	end
+	context 'giaddr = 0 and ciaddr != 0' do
+	  #send ack message to client
+	  before(:each) do
+	    ciaddr = '192.168.3.4'
+	    request.ciaddr = IPAddr.new(ciaddr).to_i
+	    reply.ip = ciaddr
+	    reply.port = 68
+	  end
+	  it_should_behave_like 'Dispatcher', :request
+	end
+	context 'giaddr = 0 and ciaddr = 0' do
+	  #send ack message to client by broadcast to 255.255.255.255
+	  before(:each) do
+	    request.flags = 1
+	    reply.ip = '255.255.255.255'
+	    reply.port = 68
+	  end
+	  it_should_behave_like 'Dispatcher', :request
+	end
+
+	context 'ask pool for configuration' do
+	  context 'query already found in cache' do
+	    it 'not reply for message' do
+	      pool.should_receive(:query).with({hwaddr: 'ee:ee:ee:ee:ee:ee', type: :request}).and_return(false)
+	      dispatcher.dispatch(request.pack, from_ip, from_port).should be_false
+	    end
+	  end
+	  context 'query not found in cache' do
+	    it 'set reply fields according to pool query result' do
+	      dispatcher.dispatch(request.pack, from_ip, from_port).data.fname.should == pool_query_result.data.fname.unpack('C128').map {|x| x ? x : 0}
+	      dispatcher.dispatch(request.pack, from_ip, from_port).data.yiaddr.should == IPAddr.new(pool_query_result.data.yiaddr).to_i
+	      dispatcher.dispatch(request.pack, from_ip, from_port).data.options.should == pool_query_result.data.options
+	    end
+	    it 'set siaddr to server ip address' do
+	      dispatcher.dispatch(request.pack, from_ip, from_port).data.siaddr.should == IPAddr.new(Blondy::DHCPD::CONFIG[:server_ip]).to_i
 	    end
 	  end
 	end
