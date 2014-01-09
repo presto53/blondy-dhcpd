@@ -26,7 +26,7 @@ module Blondy
       end
       let(:reply) {OpenStruct.new}
       Blondy::DHCPD::CONFIG = Hash.new
-      Blondy::DHCPD::CONFIG[:server_ip] = '192.168.5.1'
+      Blondy::DHCPD::CONFIG['server_ip'] = '192.168.5.1'
 
       before(:each) do
 	allow(pool).to receive(:query).and_return(pool_query_result)
@@ -155,7 +155,7 @@ module Blondy
 	      dispatcher.dispatch(discover.pack, from_ip, from_port).data.options.should == pool_query_result.data.options
 	    end
 	    it 'set siaddr to server ip address' do
-	      dispatcher.dispatch(discover.pack, from_ip, from_port).data.siaddr.should == IPAddr.new(Blondy::DHCPD::CONFIG[:server_ip]).to_i
+	      dispatcher.dispatch(discover.pack, from_ip, from_port).data.siaddr.should == IPAddr.new(Blondy::DHCPD::CONFIG['server_ip']).to_i
 	    end
 	  end
 	end
@@ -231,7 +231,7 @@ module Blondy
 	      dispatcher.dispatch(request.pack, from_ip, from_port).data.options.should == pool_query_result.data.options
 	    end
 	    it 'set siaddr to server ip address' do
-	      dispatcher.dispatch(request.pack, from_ip, from_port).data.siaddr.should == IPAddr.new(Blondy::DHCPD::CONFIG[:server_ip]).to_i
+	      dispatcher.dispatch(request.pack, from_ip, from_port).data.siaddr.should == IPAddr.new(Blondy::DHCPD::CONFIG['server_ip']).to_i
 	    end
 	  end
 	end
