@@ -18,6 +18,7 @@ module Blondy
 	d
       end
       let(:logger) {Logger}
+      Logger = Log4r::Logger.new 'ruby-dhcpd'
 
       before(:each) do
 	allow(EM).to receive(:open_udp_socket).and_return 0
