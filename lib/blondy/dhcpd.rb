@@ -8,7 +8,7 @@ module Blondy
     default_config = '/etc/blondy/dhcpd.yml'
 
     begin
-      CONFIG = YAML::load(File.open(ENV['BLONDY_CONFIGPATH'] || default_config))
+      CONFIG = YAML::load(File.open("#{ENV['BLONDY_CONFIGPATH']}/dhcpd.yml" || default_config))
     rescue
       STDERR.puts "No config file. \nPlease check that #{default_config} exist or BLONDY_CONFIGPATH is set."
       exit 1
@@ -28,8 +28,8 @@ module Blondy
     end
 
     if /^\// =~ CONFIG['pid_path']
-      pidf = "#{CONFIG['pid_path'].gsub(/\/*$/,'')}/blondy-dhcpd.pid"
-      running_pid = File.open(pidf, 'r').read.chomp rescue nil
+      @pidf = "#{CONFIG['pid_path'].gsub(/\/*$/,'')}/blondy-dhcpd.pid"
+      running_pid = File.open(@pidf, 'r').read.chomp rescue nil
       running_pgid = Process.getpgid(running_pid.to_i) rescue nil if running_pid
       if running_pgid
 	STDERR.puts 'Daemon already running.'
@@ -42,16 +42,29 @@ module Blondy
     end
 
     Process.daemon
-    File.write(pidf, "#{Process.pid}\n")
+    File.write(@pidf, "#{Process.pid}\n")
+    Logger.info "Starting dhcpd with pid #{Process.pid}"
+
+    class << self
+      def shutdown
+	EM.stop if EM.reactor_running?
+	File.delete(@pidf) if File.exists?(@pidf)
+      end
+    end
 
     Signal.trap("TERM") do
-      EM.stop
-      File.delete(pidf) if File.exists?(pidf)
+      shutdown
       exit 0
     end
 
-    EM.run do
-      EM.open_datagram_socket('0.0.0.0', 67, Server)
+    begin
+      EM.run do
+	EM.open_datagram_socket('0.0.0.0', 67, Server)
+      end
+    rescue
+      Logger.error 'Failed to start server. Check that you start server from root.'
+      shutdown
+      exit 1
     end
   end
 end
