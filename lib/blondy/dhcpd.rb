@@ -8,7 +8,8 @@ module Blondy
     default_config = '/etc/blondy/dhcpd.yml'
 
     begin
-      CONFIG = YAML::load(File.open("#{ENV['BLONDY_CONFIGPATH']}/dhcpd.yml" || default_config))
+      config_file = ( ENV['BLONDY_CONFIGPATH'] ? "#{ENV['BLONDY_CONFIGPATH']}/dhcpd.yml" : default_config )
+      CONFIG = YAML::load(File.open(config_file))
     rescue
       STDERR.puts "No config file. \nPlease check that #{default_config} exist or BLONDY_CONFIGPATH is set."
       exit 1
@@ -49,10 +50,12 @@ module Blondy
       def shutdown
 	EM.stop if EM.reactor_running?
 	File.delete(@pidf) if File.exists?(@pidf)
+	Logger.info "Server stopped."
       end
     end
 
     Signal.trap("TERM") do
+      Logger.info "Server received TERM signal."
       shutdown
       exit 0
     end
