@@ -6,9 +6,10 @@ require_relative 'dhcpd/server'
 module Blondy
   module DHCPD
     default_config = '/etc/blondy/dhcpd.yml'
+    config_file = default_config
 
     begin
-      config_file = ( ENV['BLONDY_CONFIGPATH'] ? "#{ENV['BLONDY_CONFIGPATH']}/dhcpd.yml" : default_config )
+      config_file = "#{ENV['BLONDY_CONFIGPATH']}/dhcpd.yml" if ENV['BLONDY_CONFIGPATH']
       CONFIG = YAML::load(File.open(config_file))
     rescue
       STDERR.puts "No config file. \nPlease check that #{default_config} exist or BLONDY_CONFIGPATH is set."
@@ -42,32 +43,34 @@ module Blondy
       exit 1
     end
 
-    Process.daemon
+    #    Process.daemon
     File.write(@pidf, "#{Process.pid}\n")
     Logger.info "Starting dhcpd with pid #{Process.pid}"
 
+    @signals = Array.new
     class << self
       def shutdown
+	Logger.info "Shutdown server..."
 	EM.stop if EM.reactor_running?
 	File.delete(@pidf) if File.exists?(@pidf)
-	Logger.info "Server stopped."
+      end
+      def term_handler
+	  Logger.info "Server received TERM signal."
+	  shutdown
+	  exit 0
       end
     end
 
-    Signal.trap("TERM") do
-      Logger.info "Server received TERM signal."
-      shutdown
-      exit 0
-    end
-
-    begin
-      EM.run do
-	EM.open_datagram_socket('0.0.0.0', 67, Server)
-      end
-    rescue
-      Logger.error 'Failed to start server. Check that you start server from root.'
+    if Process.uid != 0
+      Logger.error 'Failed to start server. Server should be started by root.'
       shutdown
       exit 1
+    else
+      EM.run do
+	Signal.trap('TERM') { @signals << :term }
+	EM.add_periodic_timer(1) { term_handler if @signals.include?(:term) }
+	EM.open_datagram_socket('0.0.0.0', 67, Server)
+      end
     end
   end
 end
