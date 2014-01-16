@@ -88,8 +88,8 @@ module Blondy
 	before(:each) do
 	  discover.chaddr = [238, 238, 238, 238, 238, 238, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 	  discover.hlen = 6
-	  pool_query_result.data.fname = 'test.txt'
-	  pool_query_result.data.yiaddr = '192.168.5.150'
+	  pool_query_result.data.fname = 'test.txt'.unpack('C128').map {|x| x ? x : 0}
+	  pool_query_result.data.yiaddr = IPAddr.new('192.168.5.150').to_i
 	  pool_query_result.data.options = [
 	    DHCP::MessageTypeOption.new({payload: [$DHCP_MSG_OFFER]}),
 	    DHCP::ServerIdentifierOption.new({payload: [192, 168, 1, 1]}),
@@ -102,8 +102,8 @@ module Blondy
 	  reply.data = DHCP::Offer.new
 	  reply.data.xid = discover.xid
 	  reply.data.options = pool_query_result.data.options
-	  reply.data.yiaddr = IPAddr.new(pool_query_result.data.yiaddr).to_i
-	  reply.data.fname = pool_query_result.data.fname.unpack('C128').map {|x| x ? x : 0}
+	  reply.data.yiaddr = pool_query_result.data.yiaddr
+	  reply.data.fname = pool_query_result.data.fname
 	  reply.data.siaddr = IPAddr.new(Blondy::DHCPD::CONFIG['server_ip']).to_i
 	end
 
@@ -150,8 +150,8 @@ module Blondy
 	  end
 	  context 'query not found in cache' do
 	    it 'set reply fields according to pool query result' do
-	      dispatcher.dispatch(discover.pack, from_ip, from_port).data.fname.should == pool_query_result.data.fname.unpack('C128').map {|x| x ? x : 0}
-	      dispatcher.dispatch(discover.pack, from_ip, from_port).data.yiaddr.should == IPAddr.new(pool_query_result.data.yiaddr).to_i
+	      dispatcher.dispatch(discover.pack, from_ip, from_port).data.fname.should == pool_query_result.data.fname
+	      dispatcher.dispatch(discover.pack, from_ip, from_port).data.yiaddr.should == pool_query_result.data.yiaddr
 	      dispatcher.dispatch(discover.pack, from_ip, from_port).data.options.should == pool_query_result.data.options
 	    end
 	    it 'set siaddr to server ip address' do
@@ -165,8 +165,8 @@ module Blondy
 	before(:each) do
 	  request.chaddr = [238, 238, 238, 238, 238, 238, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 	  request.hlen = 6
-	  pool_query_result.data.fname = 'test.txt'
-	  pool_query_result.data.yiaddr = '192.168.5.150'
+	  pool_query_result.data.fname = 'test.txt'.unpack('C128').map {|x| x ? x : 0}
+	  pool_query_result.data.yiaddr = IPAddr.new('192.168.5.150').to_i
 	  pool_query_result.data.options = [
 	    DHCP::MessageTypeOption.new({payload: [$DHCP_MSG_ACK]}),
 	    DHCP::ServerIdentifierOption.new({payload: [192, 168, 1, 1]}),
@@ -179,8 +179,8 @@ module Blondy
 	  reply.data = DHCP::ACK.new
 	  reply.data.xid = request.xid
 	  reply.data.options = pool_query_result.data.options
-	  reply.data.yiaddr = IPAddr.new(pool_query_result.data.yiaddr).to_i
-	  reply.data.fname = pool_query_result.data.fname.unpack('C128').map {|x| x ? x : 0}
+	  reply.data.yiaddr = pool_query_result.data.yiaddr
+	  reply.data.fname = pool_query_result.data.fname
 	  reply.data.siaddr = IPAddr.new(Blondy::DHCPD::CONFIG['server_ip']).to_i
 	  message = request
 	end
@@ -226,8 +226,8 @@ module Blondy
 	  end
 	  context 'query not found in cache' do
 	    it 'set reply fields according to pool query result' do
-	      dispatcher.dispatch(request.pack, from_ip, from_port).data.fname.should == pool_query_result.data.fname.unpack('C128').map {|x| x ? x : 0}
-	      dispatcher.dispatch(request.pack, from_ip, from_port).data.yiaddr.should == IPAddr.new(pool_query_result.data.yiaddr).to_i
+	      dispatcher.dispatch(request.pack, from_ip, from_port).data.fname.should == pool_query_result.data.fname
+	      dispatcher.dispatch(request.pack, from_ip, from_port).data.yiaddr.should == pool_query_result.data.yiaddr
 	      dispatcher.dispatch(request.pack, from_ip, from_port).data.options.should == pool_query_result.data.options
 	    end
 	    it 'set siaddr to server ip address' do
