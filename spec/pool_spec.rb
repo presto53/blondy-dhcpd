@@ -26,10 +26,8 @@ module Blondy
 	  end
 
 	  it 'initiate query to remote server' do
-	    pending
-	    #WebMock.should have_requested(:get, "https://127.0.0.1/blondy/dhcpd?hwaddr=11:11:11:11:11:11&type=discover")
-	    #a_request(:get, "https://127.0.0.1/blondy/dhcpd?hwaddr=11:11:11:11:11:11&type=discover").should have_been_made
 	    pool.query('11:11:11:11:11:11', :discover)
+	    WebMock.should have_requested(:get, "https://127.0.0.1/blondy/dhcpd?hwaddr=11:11:11:11:11:11&type=discover")
 	  end
 	  context 'remote pool reply correctly' do
 	    it 'return reply from remote pool' do
