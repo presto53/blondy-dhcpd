@@ -25,12 +25,10 @@ module Blondy
 	end
       end
       let(:reply) {OpenStruct.new}
-      Blondy::DHCPD::CONFIG = Hash.new
-      Blondy::DHCPD::CONFIG['server_ip'] = '192.168.5.1'
 
       before(:each) do
 	allow(pool).to receive(:query).and_return(pool_query_result)
-	allow(pool).to receive(:query).with({hwaddr: 'ee:ee:ee:ee:ee:ee', type: :discover}).and_return(pool_query_result)
+	allow(pool).to receive(:query).with('ee:ee:ee:ee:ee:ee', :discover).and_return(pool_query_result)
       end
 
       shared_examples 'Dispatcher' do |message|
@@ -144,7 +142,7 @@ module Blondy
 	context 'ask pool for configuration' do
 	  context 'query already found in cache' do
 	    it 'not reply for message' do
-	      pool.should_receive(:query).with({hwaddr: 'ee:ee:ee:ee:ee:ee', type: :discover}).and_return(false)
+	      pool.should_receive(:query).with('ee:ee:ee:ee:ee:ee', :discover).and_return(false)
 	      dispatcher.dispatch(discover.pack, from_ip, from_port).should be_false
 	    end
 	  end
@@ -220,7 +218,7 @@ module Blondy
 	context 'ask pool for configuration' do
 	  context 'query already found in cache' do
 	    it 'not reply for message' do
-	      pool.should_receive(:query).with({hwaddr: 'ee:ee:ee:ee:ee:ee', type: :request}).and_return(false)
+	      pool.should_receive(:query).with('ee:ee:ee:ee:ee:ee', :request).and_return(false)
 	      dispatcher.dispatch(request.pack, from_ip, from_port).should be_false
 	    end
 	  end

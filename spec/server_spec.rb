@@ -26,6 +26,7 @@ module Blondy
 	allow(Logger).to receive(:info)
 	allow(Logger).to receive(:warn)
 	allow(Logger).to receive(:error)
+	allow(Pool).to receive(:query)
       end
 
       it 'has defined buffer' do

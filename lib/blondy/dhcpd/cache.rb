@@ -2,13 +2,11 @@
 module Blondy
   module DHCPD
     class Cache
-	def initialize(type)
-
-	end
+      class << self
 	def add(hwaddr)
 
 	end
-	def query(hwaddr)
+	def query(hwaddr, type)
 
 	end
 	def flush
@@ -17,6 +15,7 @@ module Blondy
 	def purge(sec)
 
 	end
+      end
     end
   end
 end

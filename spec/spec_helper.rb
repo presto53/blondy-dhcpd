@@ -9,13 +9,20 @@ SimpleCov.start
 
 require 'net-dhcp'
 require 'eventmachine'
+require 'em-http'
 require 'ostruct'
 require 'ipaddr'
 require 'rspec'
+require 'webmock/rspec'
 
 spec_root = File.dirname(File.absolute_path(__FILE__))
 Dir.glob(spec_root + '/../lib/blondy/dhcpd/*') {|file| require file}
 
+# Set config for test
+Blondy::DHCPD::CONFIG = Hash.new
+Blondy::DHCPD::CONFIG['server_ip'] = '192.168.5.1'
+Blondy::DHCPD::CONFIG['master'] = 'https://127.0.0.1/blondy/dhcpd'
+Blondy::DHCPD::CONFIG['client_key'] = 'abcd'
 
 RSpec.configure do |config|
   config.treat_symbols_as_metadata_keys_with_true_values = true

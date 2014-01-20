@@ -25,7 +25,7 @@ module Blondy
 	private
 
 	def discover_handler
-	  @pool = Pool.query({hwaddr: @data.hwaddr, type: :discover})
+	  @pool = Pool.query(@data.hwaddr, :discover)
 	  if @pool
 	    @reply.data = DHCP::Offer.new
 	    create_reply
@@ -35,7 +35,7 @@ module Blondy
 	end
 
 	def request_handler
-	  @pool = Pool.query({hwaddr: @data.hwaddr, type: :request})
+	  @pool = Pool.query(@data.hwaddr, :request)
 	  if @pool
 	    @reply.data = DHCP::ACK.new
 	    create_reply

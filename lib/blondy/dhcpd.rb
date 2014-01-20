@@ -61,6 +61,17 @@ module Blondy
       exit 1
     end
 
+    # Check for client key
+    unless CONFIG['client_key']
+      Logger.error 'You should set client_key.'
+      exit 1
+    end
+    # Check for master address
+    unless /^http(s)?:\/\/.*/ =~ CONFIG['master']
+      Logger.error 'You should set master server.'
+      exit 1
+    end
+
     # Daemonize
     Process.daemon unless @options[:debug]
 
