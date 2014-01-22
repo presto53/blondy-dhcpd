@@ -23,7 +23,11 @@ module Blondy
 	private
 
 	def transform(json)
-
+	  data = JSON.parse(json) rescue false
+	  #if data
+	  # Here we will transform received data to our format
+	  #end
+	  data
 	end
       end
     end
