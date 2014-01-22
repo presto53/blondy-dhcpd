@@ -14,6 +14,7 @@ require 'ostruct'
 require 'ipaddr'
 require 'rspec'
 require 'webmock/rspec'
+require 'json'
 
 spec_root = File.dirname(File.absolute_path(__FILE__))
 Dir.glob(spec_root + '/../lib/blondy/dhcpd/*') {|file| require file}
