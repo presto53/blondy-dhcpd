@@ -15,6 +15,7 @@ require 'ipaddr'
 require 'rspec'
 require 'webmock/rspec'
 require 'json'
+require 'fiber'
 
 spec_root = File.dirname(File.absolute_path(__FILE__))
 Dir.glob(spec_root + '/../lib/blondy/dhcpd/*') {|file| require file}
@@ -40,17 +41,46 @@ end
 # Wrap for running examples inside eventmachine reactor
 RSpec::Core::Example.class_eval do
   alias ignorant_run run
+  class << self
+    attr_accessor :examples_fibers
+  end 
+  self.examples_fibers = Array.new
 
   def run(example_group_instance, reporter)
-    Fiber.new do
+    if @options[:no_em]
+      fibers_alive = [true]
+      while fibers_alive.include?(true)
+	fibers_alive = []
+	self.class.examples_fibers.each do |f| 
+	  f.resume
+	  fibers_alive << f.alive?
+	end
+      end 
+      while EM.reactor_running?
+	EM.stop
+	sleep 0.5 
+      end 
+      ignorant_run example_group_instance, reporter
+    elsif @options[:no_fiber]
       EM.run do
 	df = EM::DefaultDeferrable.new
 	result = nil
-	df.callback { |x| EM.stop_event_loop; Fiber.yield result }
+	df.callback { |x| EM.stop_event_loop; result }
 	result = ignorant_run example_group_instance, reporter
 	df.succeed
       end
-    end.resume
+    else
+      f = Fiber.new do
+	EM.run do
+	  df = EM::DefaultDeferrable.new
+	  result = nil 
+	  df.callback { |x| EM.stop_event_loop; Fiber.yield result }
+	  result = ignorant_run example_group_instance, reporter
+	  df.succeed
+	end
+      end 
+      self.class.examples_fibers << f
+      f.resume
+    end 
   end
 end
-
