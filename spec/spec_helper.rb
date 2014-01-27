@@ -25,6 +25,7 @@ Blondy::DHCPD::CONFIG = Hash.new
 Blondy::DHCPD::CONFIG['server_ip'] = '192.168.5.1'
 Blondy::DHCPD::CONFIG['master'] = 'https://127.0.0.1/blondy/dhcpd'
 Blondy::DHCPD::CONFIG['client_key'] = 'abcd'
+Logger = Log4r::Logger.new 'ruby-dhcpd'
 
 RSpec.configure do |config|
   config.treat_symbols_as_metadata_keys_with_true_values = true
@@ -52,7 +53,7 @@ RSpec::Core::Example.class_eval do
       while fibers_alive.include?(true)
 	fibers_alive = []
 	self.class.examples_fibers.each do |f| 
-	  f.resume
+	  f.resume if f.alive?
 	  fibers_alive << f.alive?
 	end
       end 
