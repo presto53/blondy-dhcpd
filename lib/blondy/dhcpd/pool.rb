@@ -25,7 +25,7 @@ module Blondy
 	      data
 	    end
 	    http.errback do
-	      Logger.error "Error while requesting remote server. '#{http.error}'"
+	      Logger.error 'Remote pool server is unavailable.'
 	    end
 	    false
 	  end
@@ -59,18 +59,27 @@ module Blondy
 	    result
 	  rescue UnsupportedReqType
 	    # Unsupported request type
+	    Logger.error 'Unsupported type received.'
 	    false
 	  rescue JSON::ParserError
 	    # Wrong json
+	    Logger.error 'Remote server send invalid json.'
 	    false
 	  rescue NoMethodError
+	    Logger.error 'Remote server send invalid text data in json.'
 	    # Wrong data in json
 	    false
 	  rescue IPAddr::AddressFamilyError
 	    # Wrong data in json (address family must be specified)
+	    Logger.error 'Remote server send invalid ip or nemask in json.'
 	    false
 	  rescue IPAddr::InvalidAddressError
 	    # Wrong data in json (invalid address)
+	    Logger.error 'Remote server send invalid ip or nemask in json.'
+	    false
+	  rescue
+	    # Unknown error
+	    Logger.error 'Unknown error.'
 	    false
 	  end
 	end

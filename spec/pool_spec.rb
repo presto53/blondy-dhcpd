@@ -101,8 +101,9 @@ module Blondy
 	      with(:headers => {'X-Blondy-Key'=>'abcd'}).
 	      to_timeout
 	  end
-	  it 'log that pool unavailable' do
-	    pending
+	  it 'log that pool unavailable', :no_em do
+	    logger.should_receive(:error).with('Remote pool server is unavailable.')
+	    EM.run_block { pool.query('11:11:11:11:11:11', :discover) }
 	  end
 	  it 'not set values to cache' do
 	    cache.should_not_receive(:add)
