@@ -29,10 +29,29 @@ module Blondy
       subject(:pool) {Pool}
       let(:cache) {Cache}
       let(:logger) {Logger}
-      let(:remote_json) { {'a' => 'b', 'c' => 'd'}.to_json }
-      let(:remote_invalid_json) { {'a' => 'd', 'c' => 'b'}.to_json }
-      #TODO add real data example
-      let(:reply_data) { {'a' => 'b', 'c' => 'd'} }
+      let(:remote_json) { {'fname' => 'test.txt', 
+			   'yiaddr' => '192.168.5.150', 
+			   'domain' => 'example.com', 
+			   'dns' => '8.8.8.8', 
+			   'gw' => '192.168.1.3', 
+			   'netmask' => '255.255.255.255' }.to_json }
+      let(:remote_invalid_json) { { 'netaddr' => 'invalid', 'yomask' => '' }.to_json }
+      let(:reply_data) do
+	pool_query_result = OpenStruct.new 
+	pool_query_result.data = OpenStruct.new 
+	pool_query_result.data.fname = 'test.txt'.unpack('C128').map {|x| x ? x : 0}
+	pool_query_result.data.yiaddr = IPAddr.new('192.168.5.150').to_i
+	pool_query_result.data.options = [
+	  DHCP::MessageTypeOption.new({payload: [$DHCP_MSG_OFFER]}),
+	  DHCP::ServerIdentifierOption.new({payload: Blondy::DHCPD::CONFIG['server_ip'].split('.').map {|octet| octet.to_i}}),
+	  DHCP::DomainNameOption.new({payload: 'example.com'.unpack('C*')}),
+	  DHCP::DomainNameServerOption.new({payload: [8,8,8,8]}),
+	  DHCP::IPAddressLeaseTimeOption.new({payload: [7200].pack('N').unpack('C*')}),
+	  DHCP::SubnetMaskOption.new({payload: [255, 255, 255, 255]}),
+	  DHCP::RouterOption.new({payload: [192, 168, 1, 3]})
+	]
+	pool_query_result
+      end
 
       describe 'receive query' do
 

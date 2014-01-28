@@ -1,5 +1,8 @@
 require 'em-http'
 require 'json'
+require 'net-dhcp'
+require 'ipaddr'
+require 'ostruct'
 
 module Blondy
   module DHCPD
@@ -16,9 +19,10 @@ module Blondy
 	      if http.response_header.status != 200
 		Logger.error "Remote server reply with #{http.response_header.status} error code."
 	      else
-		data = transform(http.response)
+		data = transform(http.response, type)
 		Cache.add(hwaddr,type, data) if data
 	      end
+	      data
 	    end
 	    http.errback do
 	      Logger.error "Error while requesting remote server. '#{http.error}'"
@@ -29,14 +33,50 @@ module Blondy
 
 	private
 
-	def transform(json)
-	  data = JSON.parse(json) rescue false
-	  #if data
-	  # Here we will transform received data to our format
-	  #end
-	  data
+	def transform(json, type)
+	  begin
+	    data = JSON.parse(json)
+	    if type == :discover
+	      reply_type = $DHCP_MSG_OFFER
+	    elsif type == :request
+	      reply_type = $DHCP_MSG_ACK
+	    else
+	      raise UnsupportedReqType
+	    end
+	    result = OpenStruct.new 
+	    result.data = OpenStruct.new 
+	    result.data.fname = data['fname'].unpack('C128').map {|x| x ? x : 0}
+	    result.data.yiaddr = IPAddr.new(data['yiaddr']).to_i
+	    result.data.options = [
+	      DHCP::MessageTypeOption.new({payload: [reply_type]}),
+	      DHCP::ServerIdentifierOption.new({payload: Blondy::DHCPD::CONFIG['server_ip'].split('.').map {|octet| octet.to_i}}),
+	      DHCP::DomainNameOption.new({payload: data['domain'].unpack('C*')}),
+	      DHCP::DomainNameServerOption.new({payload: (data['dns'].split('.').map {|octet| octet.to_i} if IPAddr.new(data['dns']))}),
+	      DHCP::IPAddressLeaseTimeOption.new({payload: [7200].pack('N').unpack('C*')}),
+	      DHCP::SubnetMaskOption.new({payload: (data['netmask'].split('.').map {|octet| octet.to_i} if IPAddr.new(data['netmask']))}),
+	      DHCP::RouterOption.new({payload: (data['gw'].split('.').map {|octet| octet.to_i} if IPAddr.new(data['gw']))})
+	    ]
+	    result
+	  rescue UnsupportedReqType
+	    # Unsupported request type
+	    false
+	  rescue JSON::ParserError
+	    # Wrong json
+	    false
+	  rescue NoMethodError
+	    # Wrong data in json
+	    false
+	  rescue IPAddr::AddressFamilyError
+	    # Wrong data in json (address family must be specified)
+	    false
+	  rescue IPAddr::InvalidAddressError
+	    # Wrong data in json (invalid address)
+	    false
+	  end
 	end
       end
     end
   end
+end
+class UnsupportedReqType < StandardError
 end
