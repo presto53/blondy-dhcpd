@@ -11,7 +11,7 @@ module Blondy
 	def query(hwaddr, type)
 	  reply = Cache.query(hwaddr,type)
 	  if reply
-	    reply
+	    reply[:data]
 	  else
 	    http = EM::HttpRequest.new(Blondy::DHCPD::CONFIG['master']).
 	      get(head: {'x-blondy-key' => Blondy::DHCPD::CONFIG['client_key']}, query: {'type' => type.to_s, 'hwaddr' => hwaddr})

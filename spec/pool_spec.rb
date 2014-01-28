@@ -14,7 +14,7 @@ module Blondy
 	end
 	def query(hwaddr, type)
 	  begin
-	    @cache[type][hwaddr][:data] ? @cache[type][hwaddr][:data] : false
+	    @cache[type][hwaddr][:data] ? @cache[type][hwaddr] : false
 	  rescue
 	    false
 	  end
@@ -81,13 +81,13 @@ module Blondy
 	  it 'set received data to cache', :no_em do
 	    cache.stub(:query) { cache.unstub(:query); false }
 	    EM.run_block { pool.query('11:11:11:11:11:11', :discover) }
-	    cache.query('11:11:11:11:11:11', :discover).should == reply_data
+	    cache.query('11:11:11:11:11:11', :discover)[:data].should == reply_data
 	  end
 	end
 
 	context 'found in cache' do
 	  before(:each) do
-	    allow(cache).to receive(:query).with('11:11:11:11:11:11', :discover).and_return(reply_data)
+	    allow(cache).to receive(:query).with('11:11:11:11:11:11', :discover).and_return({data:reply_data, time: Time.now})
 	  end
 
 	  it 'return reply data' do
