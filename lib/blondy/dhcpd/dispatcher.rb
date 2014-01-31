@@ -51,26 +51,34 @@ module Blondy
 	end
 
 	def create_reply
-	  @reply.data.yiaddr = @pool.data.yiaddr
-	  @reply.data.fname = @pool.data.fname
-	  @reply.data.options = @pool.data.options
-	  @reply.data.siaddr = IPAddr.new(Blondy::DHCPD::CONFIG['server_ip']).to_i
-	  @reply.data.xid = @data.xid if @data.xid
-	  @reply.ip = '255.255.255.255'
-	  set_port
+	  set_src
+	  set_pool_data
+	  set_other
 	  @reply
 	end
 
-	def set_port
-	  @reply.port = 68
+	def set_src
 	  if @data.giaddr == 0 and @data.ciaddr != 0
 	    @reply.ip = IPAddr.new(@data.ciaddr, family = Socket::AF_INET).to_s
+	    @reply.port = 68
 	  elsif @data.giaddr != 0
 	    @reply.ip = IPAddr.new(@data.giaddr, family = Socket::AF_INET).to_s
 	    @reply.port = 67
 	  else
-	    false
+	    @reply.ip = '255.255.255.255'
+	    @reply.port = 68
 	  end
+	end
+
+	def set_pool_data
+	  @reply.data.yiaddr = @pool.data.yiaddr
+	  @reply.data.fname = @pool.data.fname
+	  @reply.data.options = @pool.data.options
+	end
+
+	def set_other
+	  @reply.data.siaddr = IPAddr.new(Blondy::DHCPD::CONFIG['server_ip']).to_i
+	  @reply.data.xid = @data.xid if @data.xid
 	end
       end
     end
