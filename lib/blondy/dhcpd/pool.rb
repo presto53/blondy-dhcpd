@@ -1,8 +1,9 @@
 require 'em-http'
 require 'json'
-require 'net-dhcp'
+#require 'net-dhcp'
 require 'ipaddr'
-require 'ostruct'
+#require 'ostruct'
+require_relative 'reply'
 
 module Blondy
   module DHCPD
@@ -43,20 +44,7 @@ module Blondy
 	    else
 	      raise UnsupportedReqType
 	    end
-	    result = OpenStruct.new 
-	    result.data = OpenStruct.new 
-	    result.data.fname = data['fname'].unpack('C128').map {|x| x ? x : 0}
-	    result.data.yiaddr = IPAddr.new(data['yiaddr']).to_i
-	    result.data.options = [
-	      DHCP::MessageTypeOption.new({payload: [reply_type]}),
-	      DHCP::ServerIdentifierOption.new({payload: Blondy::DHCPD::CONFIG['server_ip'].split('.').map {|octet| octet.to_i}}),
-	      DHCP::DomainNameOption.new({payload: data['domain'].unpack('C*')}),
-	      DHCP::DomainNameServerOption.new({payload: (data['dns'].split('.').map {|octet| octet.to_i} if IPAddr.new(data['dns']))}),
-	      DHCP::IPAddressLeaseTimeOption.new({payload: [7200].pack('N').unpack('C*')}),
-	      DHCP::SubnetMaskOption.new({payload: (data['netmask'].split('.').map {|octet| octet.to_i} if IPAddr.new(data['netmask']))}),
-	      DHCP::RouterOption.new({payload: (data['gw'].split('.').map {|octet| octet.to_i} if IPAddr.new(data['gw']))})
-	    ]
-	    result
+	    Reply.new(data, reply_type).get
 	  rescue UnsupportedReqType
 	    # Unsupported request type
 	    Logger.error 'Unsupported type received.'
