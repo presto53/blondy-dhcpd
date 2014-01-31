@@ -21,6 +21,10 @@ module Blondy
 	pool_query_result
       end
 
+      before(:each) do
+	cache.flush
+      end
+
       it 'add host to cache' do
 	cache.query('11:11:11:11:11:11', :discover).should == false 
 	cache.add('11:11:11:11:11:11', :discover, data)
