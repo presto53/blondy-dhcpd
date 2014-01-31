@@ -1,4 +1,4 @@
-[![Gem Version](https://badge.fury.io/rb/blondy-dhcpd.png)](http://badge.fury.io/rb/net-dhcp) [![Build Status](https://travis-ci.org/presto53/blondy-dhcpd.png)](https://travis-ci.org/presto53/blondy-dhcpd)
+[![Gem Version](https://badge.fury.io/rb/blondy-dhcpd.png)](http://badge.fury.io/rb/net-dhcp) [![Build Status](https://travis-ci.org/presto53/blondy-dhcpd.png)](https://travis-ci.org/presto53/blondy-dhcpd)[![Code Climate](https://codeclimate.com/repos/52eb8ff6e30ba06ec2002a03/badges/132cfa29229385341bee/gpa.png)](https://codeclimate.com/repos/52eb8ff6e30ba06ec2002a03/feed)
 
 blondy-dhcpd
 ============
