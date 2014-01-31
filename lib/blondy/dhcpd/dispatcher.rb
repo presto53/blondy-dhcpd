@@ -9,15 +9,13 @@ module Blondy
 	def dispatch(data, ip, port)
 	  @data = DHCP::Message.from_udp_payload(data) rescue raise(IncorrectMessage, 'Incorrect message received.')
 	  raise(IncorrectMessage, 'Incorrect message received.') unless @data
+	  set_hwaddr
 	  reply
 	end
 
 	private
 
 	def reply
-	  DHCP::Message.class_eval {attr_accessor :hwaddr}
-	  @data.hwaddr = @data.chaddr.take(@data.hlen).map {|x| x.to_s(16).size<2 ? '0'+x.to_s(16) : x.to_s(16)}.join(':')
-	  @reply = OpenStruct.new
 	  msg_class = @data.class.to_s.gsub(/^.*::/, '').downcase
 	  handle(msg_class)
 	end
@@ -25,10 +23,15 @@ module Blondy
 	def handle(msg_class)
 	  if %w{discover request inform release}.include?(msg_class)
 	    @pool = Pool.query(@data.hwaddr, msg_class.to_sym)
-	    @pool ? send("#{msg_class}_handler".to_sym) : false
+	    @pool ? call("#{msg_class}_handler".to_sym) : false
 	  else
 	    raise NoMessageHandler, 'No appropriate handler for message.'
 	  end
+	end
+
+	def call(method)
+	    @reply = OpenStruct.new
+	    send(method)
 	end
 
 	def discover_handler
@@ -55,6 +58,11 @@ module Blondy
 	  set_pool_data
 	  set_other
 	  @reply
+	end
+
+	def set_hwaddr
+	  DHCP::Message.class_eval {attr_accessor :hwaddr}
+	  @data.hwaddr = @data.chaddr.take(@data.hlen).map {|x| x.to_s(16).size<2 ? '0'+x.to_s(16) : x.to_s(16)}.join(':')
 	end
 
 	def set_src
