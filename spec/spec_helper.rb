@@ -16,9 +16,12 @@ require 'rspec'
 require 'webmock/rspec'
 require 'json'
 require 'fiber'
+require 'log4r'
+
 
 spec_root = File.dirname(File.absolute_path(__FILE__))
-Dir.glob(spec_root + '/../lib/blondy/dhcpd/*') {|file| require file}
+exclude = %w{config.rb logger.rb}
+Dir.glob(spec_root + '/../lib/blondy/dhcpd/*') {|file| require file unless exclude.include?(file.gsub(/^.*\//,''))}
 
 # Set config for test
 Blondy::DHCPD::CONFIG = Hash.new
