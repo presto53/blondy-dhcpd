@@ -32,10 +32,19 @@ module Blondy
       exit 1
     end
 
+    
     # Set logger
     Logger = Log4r::Logger.new 'ruby-dhcpd'
     Logger.outputters << Log4r::Outputter.stdout
     format = Log4r::PatternFormatter.new(:pattern => "[%l] [%d] %m")
+
+    # Check for log path
+    unless CONFIG['log_path']
+      Logger.error 'You should set log_path.'
+      exit 1
+    end
+
+    # Set logging to file
     begin
       if /^\// =~ CONFIG['log_path']
 	log_path = CONFIG['log_path'].gsub(/\/*$/,'')
@@ -43,7 +52,7 @@ module Blondy
       end
       Logger.level = ((1..7).include?(CONFIG['log_level']) ? CONFIG['log_level'] : 1)
     rescue
-      STDERR.puts 'No config loaded or log_path missed.'
+      Logger.error 'Error while open log file.'
     end
 
     # Check if daemon already running

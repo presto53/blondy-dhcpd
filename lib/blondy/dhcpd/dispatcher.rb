@@ -93,8 +93,4 @@ module Blondy
   end
 end
 
-class NoMessageHandler < StandardError
-end
-class IncorrectMessage < StandardError
-end
 

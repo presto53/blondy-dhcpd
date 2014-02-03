@@ -2,6 +2,7 @@ require 'net-dhcp'
 require 'eventmachine'
 require 'socket'
 require 'log4r'
+require_relative 'dispatcher'
 
 module Blondy
   module DHCPD
@@ -42,4 +43,9 @@ module Blondy
       end
     end
   end
+end
+
+class NoMessageHandler < StandardError
+end
+class IncorrectMessage < StandardError
 end
