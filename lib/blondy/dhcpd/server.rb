@@ -18,18 +18,18 @@ module Blondy
 	@buffer += data
 
 	if @buffer.unpack('C4Nn2N4C16C192NC*').include?($DHCP_MAGIC)
-	  process_message
+	  process_message(@buffer.dup)
 	  @buffer.clear
 	end
       end
 
       private
 
-      def process_message
+      def process_message(buffer)
 	ip, port = Socket.unpack_sockaddr_in(get_peername)
 	action = proc do
 	  begin
-	    Dispatcher.dispatch(@buffer, ip, port)
+	    Dispatcher.dispatch(buffer, ip, port)
 	  rescue NoMessageHandler
 	    Logger.warn 'No handler for message found. Ignore.'
 	    false
