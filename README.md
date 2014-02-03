@@ -6,6 +6,7 @@ DHCPd with remote pools
 
 Installation
 ---------------
+    gem install blondy-dhcpd
 
 Configuration
 ---------------
