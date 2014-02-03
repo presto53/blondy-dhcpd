@@ -1,9 +1,8 @@
 require 'em-http'
 require 'json'
-#require 'net-dhcp'
 require 'ipaddr'
-#require 'ostruct'
 require_relative 'reply'
+require_relative 'cache'
 
 module Blondy
   module DHCPD

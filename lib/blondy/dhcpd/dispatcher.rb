@@ -1,6 +1,7 @@
 require 'net-dhcp'
 require 'ostruct'
 require 'ipaddr'
+require_relative 'pool'
 
 module Blondy
   module DHCPD
