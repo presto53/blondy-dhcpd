@@ -10,6 +10,17 @@ Installation
 
 Configuration
 ---------------
+Default config path is /etc/blondy
+
+You can change it by set BLONDY_CONFIGPATH environment variable.
+
+**Example config /etc/blondy/dhcpd.yml**:
+
+    log_path: '/var/log/blondy'
+    pid_path: '/var/run/blondy'
+    server_ip: '192.168.1.1'
+    client_key: 'AAAbbbCcC'
+    master: 'https://192.168.1.10'
 
 Usage
 ---------------
