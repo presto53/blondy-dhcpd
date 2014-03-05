@@ -55,8 +55,8 @@ module Blondy
 	end
 
 	def create_reply
-	  set_src
 	  set_pool_data
+	  set_src
 	  set_other
 	  @reply
 	end
@@ -83,6 +83,7 @@ module Blondy
 	  @reply.data.yiaddr = @pool.data.yiaddr
 	  @reply.data.fname = @pool.data.fname
 	  @reply.data.options = @pool.data.options
+	  @reply.reply_addr = @pool.reply_addr
 	end
 
 	def set_other
