@@ -86,6 +86,7 @@ module Blondy
 	before(:each) do
 	  discover.chaddr = [238, 238, 238, 238, 238, 238, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 	  discover.hlen = 6
+	  pool_query_result.reply_addr = '192.168.5.255'
 	  pool_query_result.data.fname = 'test.txt'.unpack('C128').map {|x| x ? x : 0}
 	  pool_query_result.data.yiaddr = IPAddr.new('192.168.5.150').to_i
 	  pool_query_result.data.options = [
@@ -94,7 +95,7 @@ module Blondy
 	    DHCP::DomainNameOption.new({payload: 'example.com'.unpack('C*')}),
 	    DHCP::DomainNameServerOption.new({payload: [8,8,8,8]}),
 	    DHCP::IPAddressLeaseTimeOption.new({payload: [7200].pack('N').unpack('C*')}),
-	    DHCP::SubnetMaskOption.new({payload: [255, 255, 255, 255]}),
+	    DHCP::SubnetMaskOption.new({payload: [255, 255, 255, 0]}),
 	    DHCP::RouterOption.new({payload: [192, 168, 1, 1]})
 	  ]
 	  reply.data = DHCP::Offer.new
@@ -103,6 +104,8 @@ module Blondy
 	  reply.data.yiaddr = pool_query_result.data.yiaddr
 	  reply.data.fname = pool_query_result.data.fname
 	  reply.data.siaddr = IPAddr.new(Blondy::DHCPD::CONFIG['server_ip']).to_i
+	  reply.reply_addr = pool_query_result.reply_addr
+	  reply.data.chaddr = discover.chaddr
 	end
 
 	it 'reply with offer' do
@@ -130,10 +133,10 @@ module Blondy
 	  it_should_behave_like 'Dispatcher', :discover
 	end
 	context 'giaddr = 0 and ciaddr = 0' do
-	  #send offer message to client by broadcast to 255.255.255.255
+	  #send offer message to client by broadcast
 	  before(:each) do
 	    discover.flags = 1
-	    reply.ip = '255.255.255.255'
+	    reply.ip = reply.reply_addr
 	    reply.port = 68
 	  end
 	  it_should_behave_like 'Dispatcher', :discover
@@ -163,6 +166,7 @@ module Blondy
 	before(:each) do
 	  request.chaddr = [238, 238, 238, 238, 238, 238, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 	  request.hlen = 6
+	  pool_query_result.reply_addr = '192.168.5.255'
 	  pool_query_result.data.fname = 'test.txt'.unpack('C128').map {|x| x ? x : 0}
 	  pool_query_result.data.yiaddr = IPAddr.new('192.168.5.150').to_i
 	  pool_query_result.data.options = [
@@ -171,7 +175,7 @@ module Blondy
 	    DHCP::DomainNameOption.new({payload: 'example.com'.unpack('C*')}),
 	    DHCP::DomainNameServerOption.new({payload: [8,8,8,8]}),
 	    DHCP::IPAddressLeaseTimeOption.new({payload: [7200].pack('N').unpack('C*')}),
-	    DHCP::SubnetMaskOption.new({payload: [255, 255, 255, 255]}),
+	    DHCP::SubnetMaskOption.new({payload: [255, 255, 255, 0]}),
 	    DHCP::RouterOption.new({payload: [192, 168, 1, 1]})
 	  ]
 	  reply.data = DHCP::ACK.new
@@ -180,6 +184,8 @@ module Blondy
 	  reply.data.yiaddr = pool_query_result.data.yiaddr
 	  reply.data.fname = pool_query_result.data.fname
 	  reply.data.siaddr = IPAddr.new(Blondy::DHCPD::CONFIG['server_ip']).to_i
+	  reply.reply_addr = pool_query_result.reply_addr
+	  reply.data.chaddr = request.chaddr
 	  message = request
 	end
 	it 'reply with ack' do
@@ -206,10 +212,10 @@ module Blondy
 	  it_should_behave_like 'Dispatcher', :request
 	end
 	context 'giaddr = 0 and ciaddr = 0' do
-	  #send ack message to client by broadcast to 255.255.255.255
+	  #send ack message to client by broadcast
 	  before(:each) do
 	    request.flags = 1
-	    reply.ip = '255.255.255.255'
+	    reply.ip = reply.reply_addr
 	    reply.port = 68
 	  end
 	  it_should_behave_like 'Dispatcher', :request

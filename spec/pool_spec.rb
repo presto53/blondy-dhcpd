@@ -28,6 +28,7 @@ module Blondy
 	  DHCP::SubnetMaskOption.new({payload: [255, 255, 255, 255]}),
 	  DHCP::RouterOption.new({payload: [192, 168, 1, 3]})
 	]
+	pool_query_result.reply_addr="192.168.5.150"
 	pool_query_result
       end
 
