@@ -88,6 +88,7 @@ module Blondy
 	def set_other
 	  @reply.data.siaddr = IPAddr.new(Blondy::DHCPD::CONFIG['server_ip']).to_i
 	  @reply.data.xid = @data.xid if @data.xid
+	  @reply.data.chaddr = @data.chaddr
 	end
       end
     end
