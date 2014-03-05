@@ -21,6 +21,7 @@ module Blondy
 	    DHCP::SubnetMaskOption.new({payload: array_from(data['netmask'])}),
 	    DHCP::RouterOption.new({payload: array_from(data['gw'])})
 	  ]
+	  @result.reply_addr = IPAddr.new("#{data['yiaddr']}/#{data['netmask']}").to_range.last.to_s
       end
 
       def get

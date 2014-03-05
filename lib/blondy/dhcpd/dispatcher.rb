@@ -74,7 +74,7 @@ module Blondy
 	    @reply.ip = IPAddr.new(@data.giaddr, family = Socket::AF_INET).to_s
 	    @reply.port = 67
 	  else
-	    @reply.ip = '255.255.255.255'
+	    @reply.ip = @reply.reply_addr
 	    @reply.port = 68
 	  end
 	end
