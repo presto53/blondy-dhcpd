@@ -60,6 +60,9 @@ module Blondy
 	  term_handler if @signals.include?(:term)
 	  int_handler if @signals.include?(:int)
 	end
+	# Clean cache periodically
+	EM.add_periodic_timer(1) { Cache.purge( CONFIG['cache_timeout'] || 30 ) }
+	# Start server
 	EM.open_datagram_socket('0.0.0.0', 67, Server)
       end
     end
