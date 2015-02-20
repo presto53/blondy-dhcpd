@@ -19,7 +19,8 @@ module Blondy
 	    DHCP::DomainNameServerOption.new({payload: array_from(data['dns'])}),
 	    DHCP::IPAddressLeaseTimeOption.new({payload: [7200].pack('N').unpack('C*')}),
 	    DHCP::SubnetMaskOption.new({payload: array_from(data['netmask'])}),
-	    DHCP::RouterOption.new({payload: array_from(data['gw'])})
+	    DHCP::RouterOption.new({payload: array_from(data['gw'])}),
+	    DHCP::HostNameOption.new({payload: "#{data['hostname']}.#{data['domain']}".unpack('C*')}})
 	  ]
 	  @result.reply_addr = IPAddr.new("#{data['yiaddr']}/#{data['netmask']}").to_range.last.to_s
       end
